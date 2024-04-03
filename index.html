@@ -33,6 +33,7 @@
                     <input type="text" id="initial-head-position" placeholder="eg. 198">
                     <p>Direction (R/L, default: R)</p>
                     <input type="text" id="direction" placeholder="R">
+                    <br>
                     <button type="submit">Solve</button>
                 </form>
             </div>
@@ -55,7 +56,20 @@
             var aldirection = document.getElementById('direction').value;
 
             var sequenceArray = requestSequence.split(' ').map(Number);
+           
+           
+            if (isNaN(parseInt(initialHeadPosition)) || parseInt(initialHeadPosition) < 0 || parseInt(initialHeadPosition) > 199) {
+        alert("Initial head position must be a number between 0 and 199.");
+        return;
+            }
 
+        for (var i = 0; i < sequenceArray.length; i++) {
+        if (isNaN(sequenceArray[i]) || sequenceArray[i] < 0 || sequenceArray[i] > 199) {
+            alert("Request sequence must contain numbers between 0 and 199.");
+            return;
+        }
+    }
+    
 
             var x = sequenceArray;
             var y = x.map(function (item, index) {
