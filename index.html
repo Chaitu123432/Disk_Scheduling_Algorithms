@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disk Scheduling Algorithms</title>
+    <!-- Load Plotly.js -->
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <h1 align="center">Disk Scheduling Algorithms</h1>
+        <div class="input-field">
+
+            <div class="input-field-left">
+                <h3>Input</h3>
+                <form id="algorithm-form">
+                    <p>Algorithm</p>
+                    <select name="algorithm" id="algorithm-select">
+                        <option value="FCFS">FCFS</option>
+                        <option value="SSTF">SSTF</option>
+                        <option value="SCAN">SCAN</option>
+                        <option value="C-SCAN">C-SCAN</option>
+                        <option value="LOOK">LOOK</option>
+                        <option value="C-LOOK">C-LOOK</option>
+                    </select>
+                    <p>Request Sequence (0-199)</p>
+                    <input type="text" id="request-sequence" placeholder="eg. 23 30 117 35">
+                    <p>Initial Disk Head Position (0-199)</p>
+                    <input type="text" id="initial-head-position" placeholder="eg. 198">
+                    <p>Direction (R/L, default: R)</p>
+                    <input type="text" id="direction" placeholder="R">
+                    <button type="submit">Solve</button>
+                </form>
+            </div>
+            <div class="input-field-right">
+                <h1>Output</h1>
+                <div id="graph" class="graph"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Function to handle form submission
+        document.getElementById('algorithm-form').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get form inputs
+            var algorithm = document.getElementById('algorithm-select').value;
+            var requestSequence = document.getElementById('request-sequence').value;
+            var initialHeadPosition = document.getElementById('initial-head-position').value;
+            var aldirection = document.getElementById('direction').value;
+
+            // Parse request sequence string to array
+            var sequenceArray = requestSequence.split(' ').map(Number);
+            var x = sequenceArray;
+            //x.unshift(initialHeadPosition);
+            var y = x.map(function (item, index) {
+                return index + 1; // Placeholder for y-values, replace with actual data
+            });
+
+            if (algorithm == "FCFS") {
+                var x = sequenceArray;
+                x.unshift(initialHeadPosition);
+                var y = x.map(function (item, index) {
+                    return index + 1; // Placeholder for y-values, replace with actual data
+                });
+            }
+
+
+
+
+
+
+
+
+
+            else if (algorithm == "SSTF") {
+                function calculatedifference(request, head, diff, n) {
+                    for (let i = 0; i < n; i++) {
+                        diff[i][0] = Math.abs(head - request[i]);
+                    }
+                }
+
+                function findMIN(diff, n) {
+                    let index = -1;
+                    let minimum = 1e9;
+
+                    for (let i = 0; i < n; i++) {
+                        if (!diff[i][1] && minimum > diff[i][0]) {
+                            minimum = diff[i][0];
+                            index = i;
+                        }
+                    }
+                    return index;
+                }
+
+                function shortestSeekTimeFirst(request, head, n) {
+                    if (n == 0) {
+                        return;
+                    }
+
+                    let diff = new Array(n);
+                    for (let i = 0; i < n; i++) {
+                        diff[i] = new Array(2);
+                    }
+
+                    let seekcount = 0;
+
+                    let seeksequence = new Array(n + 1);
+                    seeksequence[0] = head;
+
+                    for (let i = 0; i < n; i++) {
+                        calculatedifference(request, head, diff, n);
+                        let index = findMIN(diff, n);
+                        diff[index][1] = 1;
+
+                        seekcount += diff[index][0];
+
+                        head = request[index];
+                        seeksequence[i + 1] = head;
+                    }
+                    x = seeksequence;
+                    y = x.map(function (item, index) {
+                        return index + 1;
+                    });
+                }
+
+                var n = sequenceArray.length;
+                var proc = sequenceArray;
+                var head = initialHeadPosition;
+                shortestSeekTimeFirst(proc, head, n);
+
+
+            }
+
+
+
+
+
+            else if (algorithm == "SCAN" && aldirection == "L") {
+
+
+                // Javascript program to demonstrate
+                // SCAN Disk Scheduling algorithm
+
+                let size = 8;
+                let disk_size = 200;
+
+                function SCAN(arr, head, direction) {
+                    let seek_count = 0;
+                    let distance, cur_track;
+                    let left = [], right = [];
+                    let seek_sequence = [];
+
+                    // appending end values
+                    // which has to be visited
+                    // before reversing the direction
+                    if (direction == "left")
+                        left.push(0);
+                    else if (direction == "right")
+                        right.push(disk_size - 1);
+
+                    for (let i = 0; i < size; i++) {
+                        if (arr[i] < head)
+                            left.push(arr[i]);
+                        if (arr[i] > head)
+                            right.push(arr[i]);
+                    }
+
+                    // sorting left and right vectors
+                    left.sort(function (a, b) { return a - b });
+                    right.sort(function (a, b) { return a - b });
+
+                    // run the while loop two times.
+                    // one by one scanning right
+                    // and left of the head
+                    let run = 2;
+                    while (run-- > 0) {
+                        if (direction == "left") {
+                            for (let i = left.length - 1; i >= 0; i--) {
+                                cur_track = left[i];
+
+                                // appending current track to seek sequence
+                                seek_sequence.push(cur_track);
+
+                                // calculate absolute distance
+                                distance = Math.abs(cur_track - head);
+
+                                // increase the total count
+                                seek_count += distance;
+
+                                // accessed track is now the new head
+                                head = cur_track;
+                            }
+                            direction = "right";
+                        }
+                        else if (direction == "right") {
+                            for (let i = 0; i < right.length; i++) {
+                                cur_track = right[i];
+
+                                // appending current track to seek sequence
+                                seek_sequence.push(cur_track);
+
+                                // calculate absolute distance
+                                distance = Math.abs(cur_track - head);
+
+                                // increase the total count
+                                seek_count += distance;
+
+                                // accessed track is now new head
+                                head = cur_track;
+                            }
+                            direction = "left";
+                        }
+                    }
+
+
+                    x = seek_sequence;
+                    y = x.map(function (item, index) {
+                        return index + 1;
+                    });
+
+                }
+
+                // request array
+
+
+                var direction = "left";
+                var arr = sequenceArray;
+                var head = initialHeadPosition;
+
+                SCAN(arr, head, direction);
+
+
+
+
+            }
+
+
+
+
+
+            else if (algorithm == "SCAN") {
+
+
+                // Javascript program to demonstrate
+                // SCAN Disk Scheduling algorithm
+
+                let size = 8;
+                let disk_size = 200;
+
+                function SCAN(arr, head, direction) {
+                    let seek_count = 0;
+                    let distance, cur_track;
+                    let left = [], right = [];
+                    let seek_sequence = [];
+
+                    // appending end values
+                    // which has to be visited
+                    // before reversing the direction
+                    if (direction == "left")
+                        left.push(0);
+                    else if (direction == "right")
+                        right.push(disk_size - 1);
+
+                    for (let i = 0; i < size; i++) {
+                        if (arr[i] < head)
+                            left.push(arr[i]);
+                        if (arr[i] > head)
+                            right.push(arr[i]);
+                    }
+
+                    // sorting left and right vectors
+                    left.sort(function (a, b) { return a - b });
+                    right.sort(function (a, b) { return a - b });
+
+                    // run the while loop two times.
+                    // one by one scanning right
+                    // and left of the head
+                    let run = 2;
+                    while (run-- > 0) {
+                        if (direction == "left") {
+                            for (let i = left.length - 1; i >= 0; i--) {
+                                cur_track = left[i];
+
+                                // appending current track to seek sequence
+                                seek_sequence.push(cur_track);
+
+                                // calculate absolute distance
+                                distance = Math.abs(cur_track - head);
+
+                                // increase the total count
+                                seek_count += distance;
+
+                                // accessed track is now the new head
+                                head = cur_track;
+                            }
+                            direction = "right";
+                        }
+                        else if (direction == "right") {
+                            for (let i = 0; i < right.length; i++) {
+                                cur_track = right[i];
+
+                                // appending current track to seek sequence
+                                seek_sequence.push(cur_track);
+
+                                // calculate absolute distance
+                                distance = Math.abs(cur_track - head);
+
+                                // increase the total count
+                                seek_count += distance;
+
+                                // accessed track is now new head
+                                head = cur_track;
+                            }
+                            direction = "left";
+                        }
+                    }
+
+
+                    x = seek_sequence;
+                    y = x.map(function (item, index) {
+                        return index + 1;
+                    });
+
+                }
+
+                // request array
+
+
+                var direction = "right";
+                var arr = sequenceArray;
+                var head = initialHeadPosition;
+
+                SCAN(arr, head, direction);
+
+
+
+
+            }
+
+            else if (algorithm == "C-SCAN") {
+
+                // Javascript program to demonstrate
+                // C-SCAN Disk Scheduling algorithm
+                let size = 8;
+                let disk_size = 200;
+
+                function CSCAN(arr, head) {
+                    let seek_count = 0;
+                    let distance, cur_track;
+                    let left = [], right = [];
+                    let seek_sequence = [];
+
+                    // appending end values
+                    // which has to be visited
+                    // before reversing the direction
+                    left.push(0);
+                    right.push(disk_size - 1);
+
+                    // tracks on the left of the
+                    // head will be serviced when
+                    // once the head comes back
+                    // to the beginning (left end).
+                    for (let i = 0; i < size; i++) {
+                        if (arr[i] < head)
+                            left.push(arr[i]);
+                        if (arr[i] > head)
+                            right.push(arr[i]);
+                    }
+
+                    // sorting left and right vectors
+                    left.sort(function (a, b) { return a - b });
+                    right.sort(function (a, b) { return a - b });
+
+                    // first service the requests
+                    // on the right side of the
+                    // head.
+                    for (let i = 0; i < right.length; i++) {
+                        cur_track = right[i];
+
+                        // appending current track to seek sequence
+                        seek_sequence.push(cur_track);
+
+                        // calculate absolute distance
+                        distance = Math.abs(cur_track - head);
+
+                        // increase the total count
+                        seek_count += distance;
+
+                        // accessed track is now new head
+                        head = cur_track;
+                    }
+
+                    // once reached the right end
+                    // jump to the beginning.
+                    head = 0;
+
+                    // adding seek count for head returning from 199 to 0
+                    seek_count += (disk_size - 1);
+
+                    // Now service the requests again
+                    // which are left.
+                    for (let i = 0; i < left.length; i++) {
+                        cur_track = left[i];
+
+                        // appending current track to seek sequence
+                        seek_sequence.push(cur_track);
+
+                        // calculate absolute distance
+                        distance = Math.abs(cur_track - head);
+
+                        // increase the total count
+                        seek_count += distance;
+
+                        // accessed track is now the new head
+                        head = cur_track;
+                    }
+                    x = seek_sequence;
+                    x.unshift(initialHeadPosition);
+                    y = x.map(function (item, index) {
+                        return index + 1; // Placeholder for y-values, replace with actual data
+                    });
+
+
+                }
+
+                // request array
+                var arr = sequenceArray;
+                var head = initialHeadPosition;
+
+                //document.write("Initial position of head: " + head + "</br>");
+                CSCAN(arr, head);
+
+                // This code is contributed by mukesh07.
+
+
+            }
+
+
+            else if (algorithm == "LOOK" && aldirection == "L") {
+
+
+                let size = 8;
+
+                function LOOK(arr, head, direction) {
+                    let seek_count = 0;
+                    let distance, cur_track;
+
+                    let left = [];
+                    let right = [];
+                    let seek_sequence = [];
+
+                    // Appending values which are 
+                    // currently at left and right 
+                    // direction from the head. 
+                    for (let i = 0; i < size; i++) {
+                        if (arr[i] < head)
+                            left.push(arr[i]);
+                        if (arr[i] > head)
+                            right.push(arr[i]);
+                    }
+
+                    // Sorting left and right vectors 
+                    // for servicing tracks in the 
+                    // correct sequence. 
+                    left.sort(function (a, b) { return a - b });
+                    right.sort(function (a, b) { return a - b });
+
+                    // Run the while loop two times. 
+                    // one by one scanning right 
+                    // and left side of the head 
+                    let run = 2;
+                    while (run-- > 0) {
+                        if (direction == "left") {
+                            for (let i = left.length - 1; i >= 0; i--) {
+                                cur_track = left[i];
+
+                                // Appending current track to 
+                                // seek sequence 
+                                seek_sequence.push(cur_track);
+
+                                // Calculate absolute distance 
+                                distance = Math.abs(cur_track - head);
+
+                                // Increase the total count 
+                                seek_count += distance;
+
+                                // Accessed track is now the new head 
+                                head = cur_track;
+                            }
+
+                            // Reversing the direction 
+                            direction = "right";
+                        }
+                        else if (direction == "right") {
+                            for (let i = 0; i < right.length; i++) {
+                                cur_track = right[i];
+
+                                // Appending current track to 
+                                // seek sequence 
+                                seek_sequence.push(cur_track);
+
+                                // Calculate absolute distance 
+                                distance = Math.abs(cur_track - head);
+
+                                // Increase the total count 
+                                seek_count += distance;
+
+                                // Accessed track is now new head 
+                                head = cur_track;
+                            }
+
+                            // Reversing the direction 
+                            direction = "left";
+                        }
+                    }
+
+                    x = seek_sequence;
+                    x.unshift(initialHeadPosition);
+                    y = x.map(function (item, index) {
+                        return index + 1; // Placeholder for y-values, replace with actual data
+                    });
+                }
+
+                // Request array 
+
+                var direction = "left";
+                var arr = sequenceArray;
+                var head = initialHeadPosition;
+
+                LOOK(arr, head, direction);
+
+
+
+            }
+
+
+
+
+            else if (algorithm == "LOOK") {
+
+
+                let size = 8;
+
+                function LOOK(arr, head, direction) {
+                    let seek_count = 0;
+                    let distance, cur_track;
+
+                    let left = [];
+                    let right = [];
+                    let seek_sequence = [];
+
+                    // Appending values which are 
+                    // currently at left and right 
+                    // direction from the head. 
+                    for (let i = 0; i < size; i++) {
+                        if (arr[i] < head)
+                            left.push(arr[i]);
+                        if (arr[i] > head)
+                            right.push(arr[i]);
+                    }
+
+                    // Sorting left and right vectors 
+                    // for servicing tracks in the 
+                    // correct sequence. 
+                    left.sort(function (a, b) { return a - b });
+                    right.sort(function (a, b) { return a - b });
+
+                    // Run the while loop two times. 
+                    // one by one scanning right 
+                    // and left side of the head 
+                    let run = 2;
+                    while (run-- > 0) {
+                        if (direction == "left") {
+                            for (let i = left.length - 1; i >= 0; i--) {
+                                cur_track = left[i];
+
+                                // Appending current track to 
+                                // seek sequence 
+                                seek_sequence.push(cur_track);
+
+                                // Calculate absolute distance 
+                                distance = Math.abs(cur_track - head);
+
+                                // Increase the total count 
+                                seek_count += distance;
+
+                                // Accessed track is now the new head 
+                                head = cur_track;
+                            }
+
+                            // Reversing the direction 
+                            direction = "right";
+                        }
+                        else if (direction == "right") {
+                            for (let i = 0; i < right.length; i++) {
+                                cur_track = right[i];
+
+                                // Appending current track to 
+                                // seek sequence 
+                                seek_sequence.push(cur_track);
+
+                                // Calculate absolute distance 
+                                distance = Math.abs(cur_track - head);
+
+                                // Increase the total count 
+                                seek_count += distance;
+
+                                // Accessed track is now new head 
+                                head = cur_track;
+                            }
+
+                            // Reversing the direction 
+                            direction = "left";
+                        }
+                    }
+
+                    x = seek_sequence;
+                    x.unshift(initialHeadPosition);
+                    y = x.map(function (item, index) {
+                        return index + 1; // Placeholder for y-values, replace with actual data
+                    });
+                }
+
+                // Request array 
+
+                var direction = "right";
+                var arr = sequenceArray;
+                var head = initialHeadPosition;
+
+                LOOK(arr, head, direction);
+
+
+
+            }
+
+
+            else if (algorithm == "C-LOOK") {
+
+
+                // Javascript implementation of the approach
+
+                let size = 8;
+
+                // Function to perform C-LOOK on the request
+                // array starting from the given head
+                function CLOOK(arr, head) {
+                    let seek_count = 0;
+                    let distance, cur_track;
+
+                    let left = [];
+                    let right = [];
+                    let seek_sequence = [];
+
+                    // Tracks on the left of the
+                    // head will be serviced when
+                    // once the head comes back
+                    // to the beginning (left end)
+                    for (let i = 0; i < size; i++) {
+                        if (arr[i] < head)
+                            left.push(arr[i]);
+                        if (arr[i] > head)
+                            right.push(arr[i]);
+                    }
+
+                    // Sorting left and right vectors
+                    left.sort(function (a, b) { return a - b });
+                    right.sort(function (a, b) { return a - b });
+
+                    // First service the requests
+                    // on the right side of the
+                    // head
+                    for (let i = 0; i < right.length; i++) {
+                        cur_track = right[i];
+
+                        // Appending current track
+                        // to seek sequence
+                        seek_sequence.push(cur_track);
+
+                        // Calculate absolute distance
+                        distance = Math.abs(cur_track - head);
+
+                        // Increase the total count
+                        seek_count += distance;
+
+                        // Accessed track is now new head
+                        head = cur_track;
+                    }
+
+                    // Once reached the right end
+                    // jump to the last track that
+                    // is needed to be serviced in
+                    // left direction
+                    seek_count += Math.abs(head - left[0]);
+                    head = left[0];
+
+                    // Now service the requests again
+                    // which are left
+                    for (let i = 0; i < left.length; i++) {
+                        cur_track = left[i];
+
+                        // Appending current track to
+                        // seek sequence
+                        seek_sequence.push(cur_track);
+
+                        // Calculate absolute distance
+                        distance = Math.abs(cur_track - head);
+
+                        // Increase the total count
+                        seek_count += distance;
+
+                        // Accessed track is now the new head
+                        head = cur_track;
+                    }
+
+                    x = seek_sequence;
+                    x.unshift(initialHeadPosition);
+                    y = x.map(function (item, index) {
+                        return index + 1; // Placeholder for y-values, replace with actual data
+                    });
+
+
+                }
+
+                // request array
+                var arr = sequenceArray;
+                var head = initialHeadPosition;
+
+                CLOOK(arr, head);
+
+            }
+
+
+
+
+
+
+
+
+            // var x = sequenceArray;
+            // x.unshift(initialHeadPosition);
+            // var y = x.map(function (item, index) {
+            // return index + 1; // Placeholder for y-values, replace with actual data
+            // });
+            // // Plot the data using Plotly
+            var trace = {
+                x: x,
+                y: y,
+                type: 'scatter'
+            };
+            var layout = {
+                title: algorithm + ' Algorithm Output',
+                xaxis: {
+                    // title: 'Request Sequence',
+                    side: 'top'
+                },
+                yaxis: {
+                    //title: '',
+                    autorange: 'reversed'
+                }
+            };
+            var data = [trace];
+            Plotly.newPlot('graph', data, layout);
+        });
+    </script>
+</body>
+
+</html>
