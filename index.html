@@ -204,6 +204,7 @@
 
 
                     x = seek_sequence;
+                    x.unshift(initialHeadPosition);
                     y = x.map(function (item, index) {
                         return index + 1;
                     });
@@ -285,6 +286,7 @@
 
 
                     x = seek_sequence;
+                    x.unshift(initialHeadPosition);
                     y = x.map(function (item, index) {
                         return index + 1;
                     });
