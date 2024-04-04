@@ -95,22 +95,3 @@ body{
    position: relative;
 }
 
-.git{
-   position: absolute;
-   top: 320px;
-   left:110px;
-}
-
-#github{
-    position: inherit;
-    top: 322px;
-    left:130px;
-    font-family: Consolas;
-    font-weight: 100;
-}
-
-#githublogo{
-    position: inherit;
-    top: 320px;
-    left: 100px;
-}
